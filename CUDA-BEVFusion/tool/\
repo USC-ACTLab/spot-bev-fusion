@@ -47,7 +47,7 @@ export CUDNN_Lib=/usr/lib/x86_64-linux-gnu
 # Just used to distinguish the libspconv version, it doesn't affect the version of cuda used by your application
 # For CUDA-11.x:    SPCONV_CUDA_VERSION=11.4
 # For CUDA-12.x:    SPCONV_CUDA_VERSION=12.6
-export SPCONV_CUDA_VERSION=12.6
+export SPCONV_CUDA_VERSION=12.8
 
 # resnet50/resnet50int8/swint
 export DEBUG_MODEL=resnet50int8

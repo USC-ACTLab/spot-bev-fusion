@@ -303,6 +303,7 @@ class BEVArtistImplement : public BEVArtist {
                      {0, 0, 0, 1}};
 
     transform_matrix_.resize(4);
+    
     memset(&transform_matrix_[0], 0, sizeof(nvtype::Float4) * transform_matrix_.size());
 
     auto rotation_x = rodrigues_rotation(param.rotate_x / 180.0f * 3.141592653f, {1, 0, 0});

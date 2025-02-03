@@ -86,6 +86,9 @@
         "__locale": "cpp",
         "charconv": "cpp",
         "span": "cpp",
-        "*.inc": "cpp"
+        "*.inc": "cpp",
+        "*.ipp": "cpp",
+        "any": "cpp",
+        "ranges": "cpp"
     }
 }

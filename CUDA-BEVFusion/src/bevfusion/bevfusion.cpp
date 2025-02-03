@@ -134,7 +134,8 @@ class CoreImplement : public Core {
   }
 
   std::vector<head::transbbox::BoundingBox> forward_timer(const void* camera_images, const nvtype::half* lidar_points,
-                                                          int num_points, void* stream, bool do_normalization) {
+                                                          int num_points, void* stream, bool do_normalization,
+                                                        const nvtype::half** fusion_feature_out) {
     int cappoints = static_cast<int>(capacity_points_);
     if (num_points > cappoints) {
       printf("If it exceeds %d points, the default processing will simply crop it out.\n", cappoints);
@@ -193,6 +194,9 @@ class CoreImplement : public Core {
     float total_time = std::accumulate(times.begin(), times.end(), 0.0f, std::plus<float>{});
     printf("Total: %.3f ms\n", total_time);
     printf("=============================================\n");
+
+    *fusion_feature_out = fusion_feature;
+
     return output;
   }
 

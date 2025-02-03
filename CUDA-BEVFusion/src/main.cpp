@@ -25,7 +25,7 @@
 #include <string.h>
 #include <dlfcn.h>
 #include <vector>
-
+#include <cuda_fp16.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
@@ -38,12 +38,27 @@
 #include "common/timer.hpp"
 #include "common/visualize.hpp"
 
+// static std::vector<unsigned char*> load_images(const std::string& root) {
+//   const char* file_names[] = {"0-FRONT.jpg", "1-FRONT_RIGHT.jpg", "2-FRONT_LEFT.jpg",
+//                               "3-BACK.jpg",  "4-BACK_LEFT.jpg",   "5-BACK_RIGHT.jpg"};
+
+//   std::vector<unsigned char*> images;
+//   for (int i = 0; i < 6; ++i) {
+//     char path[200];
+//     sprintf(path, "%s/%s", root.c_str(), file_names[i]);
+
+//     int width, height, channels;
+//     images.push_back(stbi_load(path, &width, &height, &channels, 0));
+//     // printf("Image info[%d]: %d x %d : %d\n", i, width, height, channels);
+//   }
+//   return images;
+// }
 static std::vector<unsigned char*> load_images(const std::string& root) {
   const char* file_names[] = {"0-FRONT.jpg", "1-FRONT_RIGHT.jpg", "2-FRONT_LEFT.jpg",
-                              "3-BACK.jpg",  "4-BACK_LEFT.jpg",   "5-BACK_RIGHT.jpg"};
+                              "3-BACK.jpg"};
 
   std::vector<unsigned char*> images;
-  for (int i = 0; i < 6; ++i) {
+  for (int i = 0; i < 4; ++i) {
     char path[200];
     sprintf(path, "%s/%s", root.c_str(), file_names[i]);
 
@@ -53,7 +68,6 @@ static std::vector<unsigned char*> load_images(const std::string& root) {
   }
   return images;
 }
-
 static void free_images(std::vector<unsigned char*>& images) {
   for (size_t i = 0; i < images.size(); ++i) stbi_image_free(images[i]);
 
@@ -145,6 +159,9 @@ static void visualize(const std::vector<bevfusion::head::transbbox::BoundingBox>
                  scene_device_image.to_host(stream).ptr(), 100);
 }
 
+
+
+
 std::shared_ptr<bevfusion::Core> create_core(const std::string& model, const std::string& precision) {
 
   printf("Create by %s, %s\n", model.c_str(), precision.c_str());
@@ -153,7 +170,9 @@ std::shared_ptr<bevfusion::Core> create_core(const std::string& model, const std
   normalization.image_height = 900;
   normalization.output_width = 704;
   normalization.output_height = 256;
-  normalization.num_camera = 6;
+  // normalization.num_camera = 6;
+  normalization.num_camera = 4;
+
   normalization.resize_lim = 0.48f;
   normalization.interpolation = bevfusion::camera::Interpolation::Bilinear;
 
@@ -222,7 +241,8 @@ std::shared_ptr<bevfusion::Core> create_core(const std::string& model, const std
 int main(int argc, char** argv) {
 
   const char* data      = "example-data";
-  const char* model     = "resnet50int8";
+  // const char* model     = "resnet50int8";
+  const char* model = "swint";
   const char* precision = "int8";
 
   if (argc > 1) data      = argv[1];
@@ -254,7 +274,11 @@ int main(int argc, char** argv) {
   // Load image and lidar to host
   auto images = load_images(data);
   auto lidar_points = nv::Tensor::load(nv::format("%s/points.tensor", data), false);
-  
+
+  int fusion_height = 128;
+  int fusion_width  = 128;
+  int fusion_channels = 64;
+ 
   // warmup
   auto bboxes =
       core->forward((const unsigned char**)images.data(), lidar_points.ptr<nvtype::half>(), lidar_points.size(0), stream);
@@ -266,6 +290,8 @@ int main(int argc, char** argv) {
 
   // visualize and save to jpg
   visualize(bboxes, lidar_points, images, lidar2image, "build/cuda-bevfusion.jpg", stream);
+
+
 
   // destroy memory
   free_images(images);
