@@ -56,9 +56,6 @@ class Core {
                                                                          const nvtype::half *lidar_points, int num_points,
                                                                          void *stream) = 0;
 
-  virtual nv::Tensor forward_fusion_feature_tensor(const nvtype::half* camera_images,
-                                           const nvtype::half* lidar_points,
-                                           int num_points, void* stream) = 0;
   virtual void print() = 0;
   virtual void set_timer(bool enable) = 0;
 
