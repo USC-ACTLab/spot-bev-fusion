@@ -101,6 +101,7 @@ class CoreImplement : public Core {
     return true;
   }
 
+
   std::vector<head::transbbox::BoundingBox> forward_only(const void* camera_images, const nvtype::half* lidar_points,
                                                          int num_points, void* stream, bool do_normalization) {
     int cappoints = static_cast<int>(capacity_points_);
@@ -134,8 +135,7 @@ class CoreImplement : public Core {
   }
 
   std::vector<head::transbbox::BoundingBox> forward_timer(const void* camera_images, const nvtype::half* lidar_points,
-                                                          int num_points, void* stream, bool do_normalization,
-                                                        const nvtype::half** fusion_feature_out) {
+                                                          int num_points, void* stream, bool do_normalization) {
     int cappoints = static_cast<int>(capacity_points_);
     if (num_points > cappoints) {
       printf("If it exceeds %d points, the default processing will simply crop it out.\n", cappoints);
@@ -194,11 +194,58 @@ class CoreImplement : public Core {
     float total_time = std::accumulate(times.begin(), times.end(), 0.0f, std::plus<float>{});
     printf("Total: %.3f ms\n", total_time);
     printf("=============================================\n");
-
-    *fusion_feature_out = fusion_feature;
-
     return output;
   }
+
+virtual nv::Tensor forward_fusion_feature_tensor(const void* camera_images,
+                                           const nvtype::half* lidar_points,
+                                           int num_points, void* stream) override {
+  int cappoints = static_cast<int>(capacity_points_);
+  if (num_points > cappoints) {
+    printf("If it exceeds %d points, the default processing will simply crop it out.\n", cappoints);
+  }
+  num_points = std::min(cappoints, num_points);
+
+  cudaStream_t _stream = static_cast<cudaStream_t>(stream);
+  size_t bytes_points = num_points * param_.lidar_scn.voxelization.num_feature * sizeof(nvtype::half);
+  checkRuntime(cudaMemcpyAsync(lidar_points_host_, lidar_points, bytes_points,
+                               cudaMemcpyHostToHost, _stream));
+  checkRuntime(cudaMemcpyAsync(lidar_points_device_, lidar_points_host_, bytes_points,
+                               cudaMemcpyHostToDevice, _stream));
+
+  const nvtype::half* lidar_feature = this->lidar_scn_->forward(lidar_points_device_, num_points, stream);
+  
+  nvtype::half* normed_images = (nvtype::half*)camera_images;
+  normed_images = (nvtype::half*)this->normalizer_->forward((const unsigned char**)(camera_images), stream);
+  
+  const nvtype::half* depth = this->camera_depth_->forward(lidar_points_device_, num_points, 5, stream);
+
+  this->camera_backbone_->forward(normed_images, depth, stream);
+
+  const nvtype::half* camera_bev = this->camera_bevpool_->forward(
+      this->camera_backbone_->feature(), this->camera_backbone_->depth(),
+      this->camera_geometry_->indices(), this->camera_geometry_->intervals(),
+      this->camera_geometry_->num_intervals(), stream);
+
+  const nvtype::half* camera_bevfeat = camera_vtransform_->forward(camera_bev, stream);
+
+  const nvtype::half* fusion_feature = this->transfusion_->forward(camera_bevfeat, lidar_feature, stream);
+
+  int batch    = 1;
+  int channels = 256;
+  int height   = 180; 
+  int width    = 180;
+  std::vector<int64_t> fusion_shape = {batch, channels, height, width};
+
+  nv::TensorDesc fusion_desc(fusion_shape, nv::DataType::kHALF);
+  
+  nv::Tensor fusion_tensor(fusion_desc, fusion_feature, stream);
+
+  cudaStreamSynchronize(_stream);
+
+  return fusion_tensor;
+}
+
 
   virtual std::vector<head::transbbox::BoundingBox> forward(const unsigned char** camera_images, const nvtype::half* lidar_points,
                                                             int num_points, void* stream) override {
