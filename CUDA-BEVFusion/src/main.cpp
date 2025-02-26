@@ -249,6 +249,15 @@ int main(int argc, char** argv) {
   auto img_aug_matrix = nv::Tensor::load(nv::format("%s/img_aug_matrix.tensor", data), false);
   core->update(camera2lidar.ptr<float>(), camera_intrinsics.ptr<float>(), lidar2image.ptr<float>(), img_aug_matrix.ptr<float>(),
               stream);
+  // print static tensors
+  printf("camera2lidar");
+  camera2lidar.print();
+  printf("camera_intrinsics");
+  camera_intrinsics.print();
+  printf("lidar2image");
+  lidar2image.print();
+  printf("img_aug_matrix");
+  img_aug_matrix.print();
   // core->free_excess_memory();
 
   // Load image and lidar to host
