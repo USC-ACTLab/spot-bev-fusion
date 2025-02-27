@@ -100,7 +100,6 @@ target_link_libraries(bevfusion_core
 )
 #######################################################################
 
-
 ####################### bevfusion program #############################
 cuda_add_executable(bevfusion 
   src/main.cpp
@@ -127,6 +126,29 @@ target_link_libraries(custom_layernorm
   libnvinfer_plugin.so
 )
 #######################################################################
+
+####################### bevfusion install #############################
+install(TARGETS bevfusion_core custom_layernorm EXPORT bevfusion-targets
+  LIBRARY DESTINATION lib/bevfusion
+  ARCHIVE DESTINATION lib/bevfusion
+)
+
+install(EXPORT bevfusion-targets
+  FILE bevfusion-targets.cmake
+  NAMESPACE bevfusion::
+  DESTINATION lib/bevfusion
+)
+configure_file(
+   bevfusion-config.cmake.in
+   bevfusion-config.cmake @ONLY
+)
+install (
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/bevfusion-config.cmake"
+  DESTINATION lib/bevfusion
+)
+
+#######################################################################
+
 
 
 ########################## libpybev.so ################################

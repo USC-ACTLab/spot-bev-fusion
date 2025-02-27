@@ -37,8 +37,9 @@ mkdir -p build
 
 cd build
 cmake ..
-make -j
+make -j12
 
 cd ..
 
-./build/bevfusion $DEBUG_DATA $DEBUG_MODEL $DEBUG_PRECISION
+cmake --install build
+# ./build/bevfusion $DEBUG_DATA $DEBUG_MODEL $DEBUG_PRECISION
