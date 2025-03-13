@@ -23,7 +23,7 @@
 # export CUDA_VISIBLE_DEVICES=2
 
 export TensorRT_Lib=/usr/lib/x86_64-linux-gnu
-export TensorRT_Inc=/usr/include/include
+export TensorRT_Inc=/usr/include/
 export TensorRT_Bin=/usr/src/tensorrt/bin
 
 export CUDA_Lib=/usr/local/cuda/lib64

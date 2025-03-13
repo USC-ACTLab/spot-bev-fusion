@@ -85,6 +85,16 @@ file(GLOB_RECURSE VISUALIZE_FILES
   src/common/visualize.cu
 )
 
+file(GLOB_RECURSE INCLUDE_FILES
+    ../dependencies/stb/*
+    ../dependencies/dlpack/include/*
+    ../dependencies/pybind11/include/*
+    ../libraries/cuOSD/src/*
+    ${spconv_include}/*
+    src/common/*
+    src/*
+)
+
 ####################### libbevfusion_core.so ##########################
 cuda_add_library(bevfusion_core SHARED 
   ${CORE_FILES}
@@ -132,6 +142,21 @@ install(TARGETS bevfusion_core custom_layernorm EXPORT bevfusion-targets
   LIBRARY DESTINATION lib/bevfusion
   ARCHIVE DESTINATION lib/bevfusion
 )
+
+install(
+  DIRECTORY
+    # ${Protobuf_INCLUDE_DIRS}
+    # $ENV{CUDA_Inc}
+    # $ENV{TensorRT_Inc}
+    # $ENV{Python_Inc}
+    ../dependencies/stb/
+    ../dependencies/dlpack/include/
+    ../dependencies/pybind11/include/
+    ../libraries/cuOSD/src/
+    ${spconv_include}/
+    src/common/
+    src/
+  DESTINATION include/bevfusion)
 
 install(EXPORT bevfusion-targets
   FILE bevfusion-targets.cmake
