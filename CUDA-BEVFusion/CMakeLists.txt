@@ -138,9 +138,12 @@ target_link_libraries(custom_layernorm
 #######################################################################
 
 ####################### bevfusion install #############################
-install(TARGETS bevfusion_core custom_layernorm EXPORT bevfusion-targets
+install(
+  TARGETS bevfusion_core custom_layernorm
+  EXPORT bevfusion-targets
   LIBRARY DESTINATION lib/bevfusion
   ARCHIVE DESTINATION lib/bevfusion
+  RUNTIME DESTINATION bin/bevfusion
 )
 
 install(
@@ -154,7 +157,6 @@ install(
     ../dependencies/pybind11/include/
     ../libraries/cuOSD/src/
     ${spconv_include}/
-    src/common/
     src/
   DESTINATION include/bevfusion)
 
@@ -169,6 +171,11 @@ configure_file(
 )
 install (
   FILES "${CMAKE_CURRENT_BINARY_DIR}/bevfusion-config.cmake"
+  DESTINATION lib/bevfusion
+)
+
+install (
+  FILES ${spconv_lib}/libspconv.so
   DESTINATION lib/bevfusion
 )
 
