@@ -42,4 +42,5 @@ make -j12
 cd ..
 
 cmake --install build
+export LD_LIBRARY_PATH=/usr/lib/bevfusion:$LD_LIBRARY_PATH
 # ./build/bevfusion $DEBUG_DATA $DEBUG_MODEL $DEBUG_PRECISION

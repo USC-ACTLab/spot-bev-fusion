@@ -138,6 +138,7 @@ target_link_libraries(custom_layernorm
 #######################################################################
 
 ####################### bevfusion install #############################
+set(CMAKE_INSTALL_PREFIX "/usr")
 install(
   TARGETS bevfusion_core custom_layernorm
   EXPORT bevfusion-targets
@@ -176,7 +177,7 @@ install (
 
 install (
   FILES ${spconv_lib}/libspconv.so
-  DESTINATION lib/bevfusion
+  DESTINATION lib/
 )
 
 #######################################################################
